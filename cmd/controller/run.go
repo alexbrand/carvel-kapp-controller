@@ -4,6 +4,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"         // Pprof related
 	_ "net/http/pprof" // Pprof related
 	"os"
@@ -42,6 +43,14 @@ func Run(opts Options, runLog logr.Logger) {
 	if err != nil {
 		runLog.Error(err, "unable to set up overall controller manager")
 		os.Exit(1)
+	}
+
+	if proxyVal := os.Getenv("http_proxy"); proxyVal != "" {
+		runLog.Info(fmt.Sprintf("Using http proxy '%s'", proxyVal))
+	}
+
+	if proxyVal := os.Getenv("https_proxy"); proxyVal != "" {
+		runLog.Info(fmt.Sprintf("Using https proxy '%s'", proxyVal))
 	}
 
 	runLog.Info("setting up controller")

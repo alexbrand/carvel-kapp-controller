@@ -13,9 +13,15 @@ import (
 )
 
 const (
-	configMapName   = "kapp-controller-config"
+	configMapName = "kapp-controller-config"
+
 	caCertsKey      = "caCerts"
 	systemCertsFile = "/etc/ssl/certs/ca-certificates.crt"
+
+	httpProxyKey     = "httpProxy"
+	httpsProxyKey    = "httpsProxy"
+	httpProxyEnvVar  = "http_proxy"
+	httpsProxyEnvVar = "https_proxy"
 )
 
 type GlobalConfigurer struct {
@@ -58,6 +64,8 @@ func (gc *GlobalConfigurer) Configure() error {
 		return fmt.Errorf("Adding trusted certs: %s", err)
 	}
 
+	gc.configureProxies(configMap.Data[httpProxyKey], configMap.Data[httpsProxyKey])
+
 	return nil
 }
 
@@ -79,6 +87,16 @@ func (gc *GlobalConfigurer) addTrustedCerts(certChain string) (err error) {
 	}
 
 	return file.Close()
+}
+
+func (gc *GlobalConfigurer) configureProxies(httpProxy, httpsProxy string) {
+	if httpProxy != "" {
+		os.Setenv(httpProxyEnvVar, httpProxy)
+	}
+
+	if httpsProxy != "" {
+		os.Setenv(httpsProxyEnvVar, httpsProxy)
+	}
 }
 
 func (gc *GlobalConfigurer) configMap() (*v1.ConfigMap, error) {
